@@ -1,38 +1,61 @@
 # Vale ruleset for Asciidoc
 
-This repo contains Vale rules for checking Asciidoc markup specific to [Modular Docs Guidelines](https://redhat-documentation.github.io/modular-docs/) and [OpenShift Docs Guidelines](https://github.com/openshift/openshift-docs/blob/main/contributing_to_docs/doc_guidelines.adoc).
+This repo contains Vale rules for checking Asciidoc markup. These syntax rules were derived from Red Hat's [Modular Docs Guidelines](https://redhat-documentation.github.io/modular-docs/) and [OpenShift Docs Guidelines](https://github.com/openshift/openshift-docs/blob/main/contributing_to_docs/doc_guidelines.adoc).
 
-PR contributions are welcome to this repo. Or please raise GitHub issues if you find problems.
+For Vale installation steps, see here: https://vale.sh/docs/vale-cli/installation/
 
-If you have any ideas for additional rules, please add these here: https://docs.google.com/document/d/1xawRkloLUDj0cz3hlbMxTYIFBK31jMbF6X54U3MPGGY/edit?usp=sharing  
+**_NOTE:_** If you need Vale rules to lint AsciiDoc content, not AsciiDoc syntax, see the vale-at-red-hat project: https://github.com/redhat-documentation/vale-at-red-hat/
 
 ## Testing the `AsciiDoc` rule set
-To test this rule set locally, add a vale config file in your modules directory. This won't effect other rule sets you have already. You can also add this new vale config file to a glboal gitignore file in your home directory to avoid any conflicts.
+To test the `AsciiDoc` rule set, add a `.vale.ini` configuration file in your modules directory. 
 
-1. Add the following to a .gitignore file in your home directory:
+1. Add a `.vale.ini` file to your **/modules** directory with the following content:
 
-`modules/.vale.ini `
+  ```
+  StylesPath = ../.vale/styles
 
-If you didn't have a .gitignore file previously in your home dir, you may need to make git aware of this global .gitignore file by running the following:
+  MinAlertLevel = suggestion
 
-`git config --global core.excludesFile '~/.gitignore'`
+  Packages = RedHat, \
+  https://github.com/rohennes/vale-asciidoc/releases/latest/download/AsciiDoc.zip
 
-2. Create a .vale.ini file in your openshift-docs/modules directory and add the following:
+  [[!.]*.adoc]
+  BasedOnStyles = RedHat, AsciiDoc
+  ```
 
-```
-StylesPath = ../.vale/styles
+  **Note:** This is a separate `vale.ini` file that is designed for modules only - not assemblies.  If you are using this with `openshift-docs` or any other repo, don't overwrite existing `vale.ini` files.
 
-MinAlertLevel = suggestion
+2. Run `vale sync` in the modules directory.
 
-Packages = RedHat, \
-https://github.com/rohennes/ocp-rules/releases/latest/download/AsciiDoc.zip
+  ### Verification
 
-[[!.]*.adoc]
-BasedOnStyles = RedHat, AsciiDoc
-```
+  To verify, run `vale ls-config` in your modules directory to check that the `AsciiDoc` package is installed. 
 
-3. Run `vale sync` in the modules directory.
+  _Example output_
 
-You should see two packages installed. To verify, run `vale ls-config`  in the modules directory and you should see two packages "RedHat" and "AsciiDoc". 
+  ```
+  {
+  "BlockIgnores": {},
+  "Checks": null,
+  "Formats": {},
+  "Asciidoctor": {},
+  ...
+  "SBaseStyles": {
+    "[!.]*.adoc": [
+      "AsciiDoc"
+    ]
+  ...
+  }
+  ```
 
+## Optional: Exclude the Vale configuration file from Git
+ 
+To exclude the `.vale.ini` configuration file from Git, add the file to the list of ignored files in a global `.gitignore` file in your home directory.
 
+1. Add the following content to a `.gitignore` file in your home directory:
+
+      `modules/.vale.ini `
+
+2. If you didn't have a .gitignore file previously in your home dir, you may need to make git aware of this global .gitignore file by running the following:
+
+      `git config --global core.excludesFile '~/.gitignore'`
