@@ -1,0 +1,6 @@
+extends: existence
+message: "xref is broken"
+level: error
+scripts:
+  - name: ValidXrefs
+    file: ValidXrefs.sh
