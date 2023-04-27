@@ -10,7 +10,7 @@ script: |
 
   num_codeblock_callouts := 0
   num_callouts := 0
-  codeblock_callout_regex := ".+<(\\.)>"
+  codeblock_callout_regex := ".*<(\\.)>"
   callout_regex := "^<(\\.)>"
 
   for line in text.split(scope, "\n") {
