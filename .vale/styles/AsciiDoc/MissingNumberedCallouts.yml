@@ -1,7 +1,7 @@
 ---
 extends: script
-message: "Listing block callout is missing a corresponding partner callout."
-level: error
+message: "Listing block callout is missing a corresponding callout."
+level: warning
 link: https://docs.asciidoctor.org/asciidoc/latest/verbatim/callouts/
 scope: raw
 script: |
@@ -13,31 +13,45 @@ script: |
   //add a newline, it might be missing
   scope += "\n"
 
+  codeblock_callout_regex := ".+(<\\d+>)+"
+  callout_regex := "^<(\\d+)>"
   codeblock_callouts := []
   callouts := []
-  codeblock_callout_regex := ".(<\\d+>)+"
-  callout_regex := "^<(\\d+)>"
+  errors:= []
+  inside := false
+
+  num_lines := len(text.split(scope, "\n"))
 
   for line in text.split(scope, "\n") {
-    //restart for new listingblock
-    callouts = []
     if text.re_match(codeblock_callout_regex, line) {
+      inside = true
       //account for lines with multiple callouts
-      code_callout := text.re_find("<\\d+>", line)
-      codeblock_callouts = append(codeblock_callouts, code_callout)
+      for i := 1; i < num_lines; i++ {
+        //text.contains must be str, not regex
+        str := "<" + i + ">"
+        if text.contains(line, str) {
+          codeblock_callouts = append(codeblock_callouts, i)
+        }
+      }
     }
 
     if text.re_match(callout_regex, line) {
-      callouts := text.re_find("<\\d+>", line)
-      for key, value in callouts {
-        //logic: if callout is not found in codeblock_callouts, raise a match
-        for item in codeblock_callouts {
-          if item[0][0]["text"] != callouts[key][0]["text"] {
-            start := text.index(scope, line)
-            matches = append(matches, {begin: start, end: start + len(line)})
+      inside = false
+      for i := 1; i < len(codeblock_callouts); i++ {
+        str := "<" + i + ">"
+        //if a match is not found, raise an error
+        if !text.contains(line, str) {
+          if len(matches) > 0 {
+            //remove the most recently added match
+            matches = matches[:len(matches)-1]
           }
+          start := text.index(scope, line)
+          matches = append(matches, {begin: start, end: start + len(line)})
         }
       }
-      codeblock_callouts = []
     }
+  }
+
+  if len(codeblock_callouts) > 0 && inside == false {
+    codeblock_callouts = []
   }

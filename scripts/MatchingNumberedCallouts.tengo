@@ -17,35 +17,43 @@ scope = text.trim_space(scope)
 //add a newline, it might be missing
 scope += "\n"
 
-num_codeblock_callouts := 0
-num_callouts := 0
-codeblock_callout_regex := ".(<\\d+>)+"
+codeblock_callout_regex := ".+(<\\d+>)+"
 callout_regex := "^<(\\d+)>"
+codeblock_callouts := []
+inside := false
+
+num_lines := len(text.split(scope, "\n"))
 
 for line in text.split(scope, "\n") {
   if text.re_match(codeblock_callout_regex, line) {
-    //restart for new listingblock
-    num_callouts = 0
-    fmt.println(line)
+    inside = true
     //account for lines with multiple callouts
-    for i := 1; i < len(line); i++ {
-      //text.count must be str, not regex
+    for i := 1; i < num_lines; i++ {
+      //text.contains must be str, not regex
       str := "<" + i + ">"
-      num_callouts_in_line := text.count(line, str)
-      num_codeblock_callouts += num_callouts_in_line
+      if text.contains(line, str) {
+        codeblock_callouts = append(codeblock_callouts, i)
+      }
     }
   }
 
   if text.re_match(callout_regex, line) {
-    num_callouts++
-    if num_callouts > num_codeblock_callouts {
-      start := text.index(scope, line)
-      matches = append(matches, {begin: start, end: start + len(line)})
+    inside = false
+    start := text.index(scope, line)
+    matches = append(matches, {begin: start, end: start + len(line)})
+    for i in codeblock_callouts {
+      //cast int > string
+      j := text.itoa(i)
+      str := "<" + j + ">"
+      if text.contains(line, str) {
+        if len(matches) > 0 {
+          //remove the most recently added match
+          matches = matches[:len(matches)-1]
+        }
+      }
     }
-    if num_callouts == num_codeblock_callouts {
-      num_callouts = 0
-      num_codeblock_callouts = 0
-    }
+  } else if len(codeblock_callouts) > 0 && inside == false {
+    codeblock_callouts = []
   }
 }
 

@@ -8,12 +8,3 @@ get '/hihi'<2><1><3><5>
 <2> More text
 <3> More text again
 <4> Again, more text
-
-//vale-fixture
-[source,ruby]
-----
-require 'judy' <1>
-get '/hihihi'<2><3>
-----
-<1> texting
-<2> More texting
